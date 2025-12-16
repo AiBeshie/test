@@ -6,12 +6,12 @@
   <link rel="stylesheet" href="style/style.css">
   <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
   <style>
-    /* Reset and body */
+    /* Reset & base styles */
     html, body {
-      margin:0;
-      padding:0;
-      overflow-x:hidden;
-      height:100%;
+      margin: 0;
+      padding: 0;
+      overflow-x: hidden;
+      height: 100%;
       font-family: 'Press Start 2P', monospace;
     }
 
@@ -23,6 +23,12 @@
       background: #eee;
       z-index: 1;
       overflow: hidden;
+    }
+
+    /* Scrollable GBA shell */
+    .gba-shell {
+      overflow-x: auto;
+      height: 100%;
     }
 
     /* Panels */
@@ -37,58 +43,31 @@
       pointer-events: none;
     }
 
-    #leftPanel {
-      top:0; bottom:0; left:0;
-      width:220px;
-      transform: translateX(-100%);
-    }
+    #leftPanel { top:0; bottom:0; left:0; width:220px; transform: translateX(-100%); }
+    #rightPanel { top:0; bottom:0; right:0; width:220px; transform: translateX(100%); }
+    #bottomPanel { left:0; right:0; bottom:0; height:220px; transform: translateY(100%); }
 
-    #rightPanel {
-      top:0; bottom:0; right:0;
-      width:220px;
-      transform: translateX(100%);
-    }
-
-    #bottomPanel {
-      left:0; right:0; bottom:0;
-      height:220px;
-      transform: translateY(100%);
-    }
-
-    .side-panel.active {
-      transform: translateX(0) translateY(0);
-      pointer-events: auto;
-    }
-
-    /* Optional: smooth transition */
-    .side-panel {
-      transition: transform 0.3s ease;
-    }
+    .side-panel.active { transform: translateX(0) translateY(0); pointer-events: auto; }
 
     /* Mobile toggle button */
     #viewToggleBtn {
       position: fixed;
-      top:10px;
-      right:10px;
-      z-index:1001;
-      padding:6px 10px;
-      font-size:0.9em;
-      background:#ff9800;
-      color:#fff;
-      border:none;
-      border-radius:6px;
-      cursor:pointer;
-    }
-
-    /* Make GBA scrollable horizontally if needed */
-    .gba-shell {
-      overflow-x: auto;
+      top: 10px;
+      right: 10px;
+      z-index: 1001;
+      padding: 6px 10px;
+      font-size: 0.9em;
+      background: #ff9800;
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
     }
   </style>
 </head>
 <body class="mobile-view">
 
-  <!-- Mobile Toggle -->
+  <!-- Mobile toggle -->
   <button id="viewToggleBtn">🔙 Back to PC View</button>
 
   <header>
@@ -99,8 +78,8 @@
   <!-- Main GBA Battle Screen -->
   <div id="gbaScreen">
     <div class="gba-shell">
-      <!-- Your battle screen content here -->
       <div class="battle-screen">
+        <!-- Enemy Pokémon -->
         <div class="enemy-container">
           <div class="hp-box">
             <div class="name-level">
@@ -108,12 +87,8 @@
               <span id="wildCP" class="cp-display">• CP 0</span>
             </div>
             <div class="bars-row">
-              <div class="hp-bar-outer hp-horizontal">
-                <div id="enemyHPBar" class="hp-bar-inner hp-green"></div>
-              </div>
-              <div class="hp-bar-outer hp-horizontal">
-                <div id="enemyEnergyBar" class="hp-bar-inner hp-blue"></div>
-              </div>
+              <div class="hp-bar-outer hp-horizontal"><div id="enemyHPBar" class="hp-bar-inner hp-green"></div></div>
+              <div class="hp-bar-outer hp-horizontal"><div id="enemyEnergyBar" class="hp-bar-inner hp-blue"></div></div>
             </div>
             <div class="hp-text">
               <span id="enemyHP">0</span>/<span id="enemyHPMax">0</span>
@@ -122,6 +97,8 @@
           </div>
           <img id="wildSprite" src="" alt="Wild Pokémon" class="pokemon-sprite">
         </div>
+
+        <!-- Player Pokémon -->
         <div class="player-container">
           <img id="playerSprite" src="" alt="Player Pokémon" class="pokemon-sprite">
           <img id="pokeballThrow" src="img/greatball.png" style="position:absolute; left:-50%; top:70%; width:40px; height:40px; transform:translateX(-50%) translateY(0); display:none;" alt="Pokéball">
@@ -131,12 +108,8 @@
               <span id="playerCP" class="cp-display">• CP 0</span>
             </div>
             <div class="bars-row">
-              <div class="hp-bar-outer hp-horizontal">
-                <div id="playerHPBar" class="hp-bar-inner hp-green"></div>
-              </div>
-              <div class="hp-bar-outer hp-horizontal">
-                <div id="playerEnergyBar" class="hp-bar-inner hp-blue"></div>
-              </div>
+              <div class="hp-bar-outer hp-horizontal"><div id="playerHPBar" class="hp-bar-inner hp-green"></div></div>
+              <div class="hp-bar-outer hp-horizontal"><div id="playerEnergyBar" class="hp-bar-inner hp-blue"></div></div>
             </div>
             <div class="hp-text">
               <span id="playerHP">0</span>/<span id="playerHPMax">0</span>
@@ -145,6 +118,7 @@
           </div>
         </div>
       </div>
+
       <!-- Moves & Items -->
       <div class="moves-box">
         <p class="small">Current Route: <span id="currentRoute">None</span></p>
@@ -182,63 +156,58 @@
   </div>
 
   <script>
-    // ------------------ DARK MODE ------------------
+    // Dark mode toggle
+    if(localStorage.getItem('darkMode') === 'true') document.body.classList.add('dark-mode');
     function toggleDarkMode() {
       document.body.classList.toggle('dark-mode');
       localStorage.setItem('darkMode', document.body.classList.contains('dark-mode'));
     }
 
-    if(localStorage.getItem('darkMode') === 'true') {
-      document.body.classList.add('dark-mode');
-    }
-
-    // ------------------ MOBILE TOGGLE BACK TO PC ------------------
-    const viewToggleBtn = document.getElementById('viewToggleBtn');
-    viewToggleBtn.addEventListener('click', () => {
+    // Mobile toggle back to PC view
+    document.getElementById('viewToggleBtn').addEventListener('click', () => {
       window.location.href = 'index.html';
     });
 
-    // ------------------ SWIPE PANELS ------------------
-    let startX, startY, endX, endY;
+    // Swipe gesture for panels
+    let startX, startY;
     const leftPanel = document.getElementById('leftPanel');
     const rightPanel = document.getElementById('rightPanel');
     const bottomPanel = document.getElementById('bottomPanel');
+    const gbaScreen = document.getElementById('gbaScreen');
 
-    document.getElementById('gbaScreen').addEventListener('touchstart', e => {
+    gbaScreen.addEventListener('touchstart', e => {
       startX = e.touches[0].clientX;
       startY = e.touches[0].clientY;
     });
 
-    document.getElementById('gbaScreen').addEventListener('touchend', e => {
-      endX = e.changedTouches[0].clientX;
-      endY = e.changedTouches[0].clientY;
+    gbaScreen.addEventListener('touchend', e => {
+      const endX = e.changedTouches[0].clientX;
+      const endY = e.changedTouches[0].clientY;
 
       const dx = endX - startX;
       const dy = endY - startY;
-      const absDx = Math.abs(dx);
-      const absDy = Math.abs(dy);
 
       // Horizontal swipe
-      if(absDx > 50 && absDx > absDy){
-        if(dx > 0 && startX < 50) leftPanel.classList.add('active'); // swipe right from left
-        else if(dx < 0 && startX > window.innerWidth - 50) rightPanel.classList.add('active'); // swipe left from right
+      if(Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy)){
+        if(dx > 0 && startX < 50) leftPanel.classList.add('active');
+        else if(dx < 0 && startX > window.innerWidth - 50) rightPanel.classList.add('active');
       }
 
       // Vertical swipe from bottom
-      if(absDy > 50 && absDy > absDx){
-        if(dy < 0 && startY > window.innerHeight - 50) bottomPanel.classList.add('active'); // swipe up from bottom
+      if(Math.abs(dy) > 50 && Math.abs(dy) > Math.abs(dx)){
+        if(dy < 0 && startY > window.innerHeight - 50) bottomPanel.classList.add('active');
       }
     });
 
-    // Tap main GBA to close panels
-    document.getElementById('gbaScreen').addEventListener('click', () => {
+    // Tap GBA to close panels
+    gbaScreen.addEventListener('click', () => {
       leftPanel.classList.remove('active');
       rightPanel.classList.remove('active');
       bottomPanel.classList.remove('active');
     });
   </script>
 
-  <!-- Scripts -->
+  <!-- Game scripts -->
   <script src="data/movesdb.js"></script>
   <script src="data/pokemondb.js"></script>
   <script src="data/pokemonImages.js"></script>
